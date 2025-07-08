@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>What does my Module outcome mean?</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        .search-container {
+            position: relative;
+            width: 100%;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 8px 32px 8px 8px;
+            border: 2px solid #d1d5db;
+            border-radius: 6px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        
+        .search-input:hover {
+            border-color: #ef4444;
+        }
+        
+        .search-input:focus {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+        }
+        
+        .suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .suggestion-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background-color 0.2s ease;
+        }
+        
+        .suggestion-item:hover,
+        .suggestion-item.highlighted {
+            background-color: #fef2f2;
+        }
+        
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .no-results {
+            padding: 8px 12px;
+            color: #6b7280;
+            font-style: italic;
+        }
+        
+        .clear-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #6b7280;
+            padding: 4px;
+            border-radius: 50%;
+            transition: background-color 0.2s ease;
+        }
+        
+        .clear-btn:hover {
+            background-color: #f3f4f6;
+        }
+
+        .dropdown-select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #d1d5db;
+            border-radius: 6px;
+            outline: none;
+            transition: border-color 0.3s ease;
+            background-color: white;
+            font-size: 14px;
+        }
+        
+        .dropdown-select:hover {
+            border-color: #ef4444;
+        }
+        
+        .dropdown-select:focus {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-red-600 to-pink-800 text-white p-6 rounded-t-lg">
+                <h1 class="text-2xl font-bold">WHAT DOES MY MODULE OUTCOME MEAN?</h1>
+            </div>
+            
+            <div class="p-6 space-y-8">
+                <!-- Selection Form -->
+                <div class="space-y-6">
+                
+                <!-- App description -->
+                    <div class="space-y-2">
+                        <label class="text-base font-medium text-slate-700 block">This application should be used to help you to understand your results of your Modules. Please select your Module by typing the Module code (e.g. BIO1111) in the search box below and then select your outcome from the dropdown.<br><br> If you require further clarification, please contact your <u>Module Coordinator</u>.
+                        </div>
+                    
+                    <!-- Module Code -->
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-700 block">Module Code:</label>
+                        <div class="search-container">
+                            <input type="text" class="search-input" id="moduleCode" placeholder="Type BIOXXXX to search module code...">
+                            <button class="clear-btn" id="moduleClearBtn" style="display: none;">Ã</button>
+                            <div class="suggestions" id="moduleSuggestions"></div>
+                        </div>
+                        <!-- Module note in extra small, grey font -->
+                    <div class="text-left text-gray-500 text-xs font-bold">
+                        <span class="font-bold text-red-600">NOTE</span> If your Module Code does not begin 'BIO', please contact your Module Coordinator to clarify your Module Outcome
+                    </div>
+                    </div>
+                    
+                    
+                    <!-- Module Outcome - Changed to dropdown -->
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-700 block">Module Outcome:</label>
+                        <select class="dropdown-select" id="EBNType">
+                            <option value="">Select a module outcome...</option>
+                            <option value="ABSENT">ABS - Absent</option>
+                            <option value="ABSENT MITIGATION">ABSM - Absent Mitigation</option>
+                            <option value="FAIL">F - Fail</option>
+                            <option value="INCOMPLETE">INC - Incomplete</option>
+                            <option value="MARK NOT AVAILABLE">MNA - Mark Not Available</option>
+                            <option value="PASS">P - Pass</option>
+                            <option value="PASS HONS RESTRICTED">PH - Pass Honours Restricted</option>
+                        </select>
+                    </div>
+                </div>
+                    
+                <!-- Explanation Section (initially hidden) -->
+                <div id="explanationSection" class="space-y-4 hidden">
+                    <!-- Explanation -->
+                    <div class="border-2 border-red-600 bg-gray-50 p-4 rounded-lg">
+                        <p class="font-bold text-lg text-red-600" id="EBNName"></p>
+                        <p class="text-slate-600" id="EBNExplanation"></p>
+                    </div>
+                    
+                    <!-- Implications section -->
+                    <div id="implicationsSection" class="rounded-lg border-2 p-4">
+                        <p class="font-bold text-lg flex items-center gap-2 text-slate-800">What does this mean?</p>
+                        <p class="mt-2 text-slate-600" id="implicationsDescription"></p>
+                    </div>
+                    
+                    <!-- Module Compulsory Elements section -->
+                    <div id="compulsoryElementsSection" class="rounded-lg border-2 border-red-600 bg-gray-50 p-4">
+                        <p class="font-bold text-lg text-red-600">Module Compulsory Elements</p>
+                        <p class="mt-2 text-slate-600" id="compulsoryElementsDescription"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Added attribution in small, light grey font -->
+    <div class="text-center text-gray-400 text-xs mt-2">
+        Created by SOBS ELOs & SET Team 2025
+    </div>
+    
+    <script>
+        // Module options
+        const moduleOptions = [
+            { value: "BIO1101", label: "BIO1101 - Introduction to Business and Research Methods" },
+            { value: "BIO1102", label: "BIO1102 - Environmental Management" },
+            { value: "BIO1103", label: "BIO1103 - Molecular Basis of Life" },
+            { value: "BIO1201", label: "BIO1201 - Mechanisation and Farm Buildings" },
+            { value: "BIO1301", label: "BIO1301 - World of Microorganisms" },
+            { value: "BIO1302", label: "BIO1302 - Fundamentals of Nutrition and Physiology" },
+            { value: "BIO1304", label: "BIO1304 - Genetics and the Molecular Toolbox" },
+            { value: "BIO1305", label: "BIO1305 - Biodiversity" },
+            { value: "BIO1306", label: "BIO1306 - Enterprise Technology" },
+            { value: "BIO1307", label: "BIO1307 - Applied Crop Science" },
+            { value: "BIO1308", label: "BIO1308 - Applied Animal Science" },
+            { value: "BIO1309", label: "BIO1309 - Environmental Sciences" },
+            { value: "BIO1310", label: "BIO1310 - Microbiology for Food Scientists" },
+            { value: "BIO1311", label: "BIO1311 - Sustainable Food Systems" },
+            { value: "BIO1312", label: "BIO1312 - Chemistry for Food Scientists" },
+            { value: "BIO1313", label: "BIO1313 - Composition of Foods" },
+            { value: "BIO1314", label: "BIO1314 - Fundamentals of Microbiology" },
+            { value: "BIO1315", label: "BIO1315 - Environmental Biology" },
+            { value: "BIO2101", label: "BIO2101 - Principles of Food Quality" },
+            { value: "BIO2102", label: "BIO2102 - Experimental Biochemistry" },
+            { value: "BIO2104", label: "BIO2104 - Cell Biology" },
+            { value: "BIO2105", label: "BIO2105 - Environmental Assessment" },
+            { value: "BIO2106", label: "BIO2106 - Plant and Soil Science" },
+            { value: "BIO2107", label: "BIO2107 - Applied Ecology with Field Course" },
+            { value: "BIO2108", label: "BIO2108 - Marine Systems" },
+            { value: "BIO2201", label: "BIO2201 - Industrial Food Analysis" },
+            { value: "BIO2202", label: "BIO2202 - Microorganisms in Action" },
+            { value: "BIO2203", label: "BIO2203 - Invertebrate Biology" },
+            { value: "BIO2204", label: "BIO2204 - Introduction to Environmental Economics" },
+            { value: "BIO2205", label: "BIO2205 - Applied Genetics" },
+            { value: "BIO2206", label: "BIO2206 - Coastal and Oceanic Biology" },
+            { value: "BIO2207", label: "BIO2207 - Forensics and Toxicology" },
+            { value: "BIO2301", label: "BIO2301 - Food Commodities, Processing and Hygiene" },
+            { value: "BIO2302", label: "BIO2302 - Food Innovation, Diet and Health" },
+            { value: "BIO2303", label: "BIO2303 - Work Placement" },
+            { value: "BIO2304", label: "BIO2304 - Advanced Cell Biology" },
+            //{ value: "BIO2305", label: "BIO2305 - Molecular Genetics and Bioinformatics" },
+            { value: "BIO2306", label: "BIO2306 - Animal Biology and Physiology" },
+            { value: "BIO2307", label: "BIO2307 - Agri-Food Business Marketing and Management" },
+            { value: "BIO2308", label: "BIO2308 - Livestock Production and Management" },
+            { value: "BIO2309", label: "BIO2309 - Crop Production Systems" },
+            { value: "BIO2310", label: "BIO2310 - Sustainable Agriculture" },
+            { value: "BIO2311", label: "BIO2311 - Microbial Metabolism and Biocatalysis" },
+            { value: "BIO2312", label: "BIO2312 - Molecular Genetics and Bioinformatics I" },
+            { value: "BIO2313", label: "BIO2313 - Molecular Genetics and Bioinformatics II" },
+            { value: "BIO2314", label: "BIO2314 - Vertebrate Biology" },
+            { value: "BIO2315", label: "BIO2315 - Comparative Animal Physiology" },
+            { value: "BIO2316", label: "BIO2316 - Scientific Research Skills: From Fieldwork to Reporting" },
+            { value: "BIO2317", label: "BIO2317 - Applied Ecology" },
+            { value: "BIO2318", label: "BIO2318 - Diagnostic Microbiology" },
+            { value: "BIO3001", label: "BIO3001 - Nutrition Pathways in Health and Disease" },
+            //{ value: "BIO3026", label: "BIO3026 - Research Project (Erasmus)" },
+            { value: "BIO3101", label: "BIO3101 - Business Innovation and Entrepreneurship" },
+            { value: "BIO3102", label: "BIO3102 - Sustainable Oceans" },
+            { value: "BIO3104", label: "BIO3104 - Immunology and Immunotherapy" },
+            { value: "BIO3106", label: "BIO3106 - Farm Animal Health and Welfare" },
+            { value: "BIO3107", label: "BIO3107 - Parasitology" },
+            { value: "BIO3108", label: "BIO3108 - Behavioural Ecology" },
+            { value: "BIO3109", label: "BIO3109 - Policies for Environmental Sustainability" },
+            { value: "BIO3203", label: "BIO3203 - Microbiome: Biotechnological Applications and 'Omic Manipulations" },
+            { value: "BIO3204", label: "BIO3204 - Zoonoses" },
+            { value: "BIO3205", label: "BIO3205 - Global Change Biology" },
+            { value: "BIO3206", label: "BIO3206 - Conservation Biology" },
+            { value: "BIO3207", label: "BIO3207 - Global Issues in Agriculture" },
+            { value: "BIO3208", label: "BIO3208 - Advances in Crop and Animal Science and Technology" },
+            { value: "BIO3209", label: "BIO3209 - Medical Microbiology" },
+            { value: "BIO3301", label: "BIO3301 - Food Supply Chain Safety and Security" },
+            { value: "BIO3303", label: "BIO3303 - Professional Studies" },
+            { value: "BIO3304", label: "BIO3304 - Biomolecules in Health and Disease" },
+            { value: "BIO3307", label: "BIO3307 - Project Work (Ag Tech)" },
+            { value: "BIO3308", label: "BIO3308 - Research Project" },
+            { value: "BIO3309", label: "BIO3309 - Environmental Management Dissertation" },
+            { value: "BIO4101", label: "BIO4101 - Food Safety, Health and Disease" },
+            { value: "BIO4102", label: "BIO4102 - Advanced Food Bioanalysis" },
+            { value: "BIO4201", label: "BIO4201 - Agri-Food Traceability and Fraud" },
+            { value: "BIO4301", label: "BIO4301 - Research Project (MSci)" },
+            //{ value: "BIO4302", label: "BIO4302 - MSci Research Project: Food Science and Food Security" },
+            { value: "BIO4303", label: "BIO4303 - MSci research Project: Food Science and Nutrition" }
+        ];
+
+        // Module compulsory elements
+        const moduleCompulsoryElements = {
+            "BIO1101": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Submit all coursework<br>â¢ Attend all practicals<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO1102": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in Module",
+            "BIO1103": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Attend both class tests<br>â¢ Attend practicals<br>â¢ Achieve 40% or above in Module",
+            "BIO1201": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO1301": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Attend class test<br>â¢ Attend practicals<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO1302": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Attend all practicals and tutorials<br>â¢ Submit all practical reports<br>â¢ Submit essays<br>â¢ Participate in video presentation session<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO1304": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Attend class test<br>â¢ Attend practicals<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO1305": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Attend both class tests<br>â¢ 100% practical attendance expected<br>â¢ Achieve 40% or above in Module",
+            "BIO1306": "<b>To pass this module you must:</b><br>â¢ Have 100% attendance on duties<br>â¢ Achieve 40% or above in Module",
+            "BIO1307": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO1308": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO1309": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Attend field course<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO1310": "<b>To pass this module you must:</b><br>â¢ Attend all practicals<br>â¢ Complete both class tests<br>â¢ Submit four practical reports<br>â¢ Submit essay<br>â¢ Achieve 40% or above in Module",
+            "BIO1311": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Achieve 40% or above in Module",
+            "BIO1312": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in class test<br>â¢ Attend 80% of practicals<br>â¢ Submit 80% of reports<br>â¢ Achieve 40% or above in Module",
+            "BIO1313": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Submit all coursework elements<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO1314": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Attend both class tests<br>â¢  Attend practicals<br>â¢ Complete essay<br>â¢ Achieve 40% or above in Module",
+            "BIO1315": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Attend field course<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO2101": "<b>To pass this module you must:</b><br>â¢ Submit all coursework<br>â¢  Achieve 40% or above in class test<br>â¢ Achieve 40% or above in Module",
+            "BIO2102": "<b>To pass this module you must:</b><br>â¢ Submit all assessments<br>â¢  Achieve 40% or above in both class tests<br>â¢ Achieve 40% or above in Module",
+            "BIO2104": "<b>To pass this module you must:</b><br>â¢ Attend all practicals<br>â¢  Attend class tests<br>â¢ Achieve 40% or above in Module",
+            "BIO2105": "<b>To pass this module you must:</b><br>â¢ Submit at least one report<br>â¢  Submit at least one presentation<br>â¢ Achieve 40% or above in Module",
+            "BIO2106": "<b>To pass this module you must:</b><br>â¢ Submit all coursework<br>â¢ Achieve 40% or above in Module",
+            "BIO2107": "<b>To pass this module you must:</b><br>â¢ Submit at least one report<br>â¢  Attend residential field course<br>â¢ Submit field report<br>â¢ Achieve 40% or above in Module",
+            "BIO2108": "<b>To pass this module you must:</b><br>â¢  Submit all coursework<br>â¢ Attend all practicals<br>â¢ Achieve 40% or above in Module",
+            "BIO2201": "<b>To pass this module you must:</b><br>â¢  Submit all coursework<br>â¢ Attendance of all lectures and tutorials is strongly advised<br>â¢ Achieve 40% or above in Module",
+            "BIO2202": "<b>To pass this module you must:</b><br>â¢ 100% practical attendance expected<br>â¢ Achieve 40% or above in Module",
+            "BIO2203": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Complete class test<br>â¢ 100% practical attendance expected<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO2204": "<b>To pass this module you must:</b><br>â¢ Complete class test<br>â¢ Complete written assignments<br>â¢ Achieve 40% or above in Module",
+            "BIO2205": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ submit all coursework<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO2206": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Attend field course<br>â¢ Submit full field report<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO2207": "<b>To pass this module you must:</b><br>â¢ 100% practical attendance is expected<br>â¢ Achieve 40% or above in Module",
+            "BIO2301": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Submit all coursework<br>â¢ Attend all practicals<br>â¢ 80% attendance at Food Safety training sessions by external examiner<br>â¢ Attend all problem-based learning sessions (Semester 2)<br>â¢ Attend all visits to food processing facility at CAFRE Loughry Campus, Cookstown<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO2302": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Submit all coursework<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO2303": "<b>To pass this module you must:</b><br>â¢ Attend all compulsory preparation seminars<br>â¢ Satisfactorily complete work placement<br>â¢ Submit all placement assessments<br>â¢ Attend presentation<br>â¢ Achieve 40% or above in Module",
+            "BIO2304": "<b>To pass this module you must:</b><br>â¢ Attend all practicals<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO2305": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Submit all coursework<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO2306": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Attend both class tests<br>â¢ 100% practical attendance is expected<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO2307": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO2308": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO2309": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO2310": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in Module",
+            "BIO2311": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in Module",
+            "BIO2312": "<b>To pass this module you must:</b><br>â¢ Submit all coursework<br>â¢ Achieve 40% or above in Module",
+            "BIO2313": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Submit all coursework<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO2314": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Attend class test<br>â¢ 100% practical attendance is expected<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO2315": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Attend class test<br>â¢ 100% practical attendance is expected<br>â¢ Achieve 40% or above in Module",
+            "BIO2316": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in Module",
+            "BIO2317": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in Module",
+            "BIO2318": "<b>To pass this module you must:</b><br>â¢ Submit all coursework<br>â¢ Attend all practicals<br>â¢ Submit exam<br>â¢ Achieve 40% or above in Module",
+            "BIO3001": "<b>To pass this module you must:</b><br>â¢ Submit all coursework<br>â¢ Attend 80% of lectures<br>â¢ Attend 80% of tutorials<br>â¢ Submit essay<br>â¢ Attend exam<br>â¢ Achieve 40% or above in Module",
+            "BIO3026": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in Module",
+            "BIO3101": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in Module",
+            "BIO3102": "<b>To pass this module you must:</b><br>â¢ Submit all coursework<br>â¢ Attend all workshops<br>â¢ Attend all class tests<br>â¢ Attend all field courses<br>â¢ Achieve 40% or above in Module",
+            "BIO3104": "<b>To pass this module you must:</b><br>â¢ Submit all coursework<br>â¢ Complete class test<br>â¢ Achieve 40% or above in Module",
+            "BIO3106": "<b>To pass this module you must:</b><br>â¢ Submit essay<br>â¢ Complete presentation<br>â¢ Achieve 40% or above in Module",
+            "BIO3107": "<b>To pass this module you must:</b><br>â¢ Submit all coursework<br>â¢ Complete class test<br>â¢ Achieve 40% or above in Module",
+            "BIO3108": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Submit all coursework<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO3109": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in Module",
+            "BIO3203": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Submit all coursework<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO3204": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Submit essay<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO3205": "<b>To pass this module you must:</b><br>â¢ Submit all coursework<br>â¢ Complete class test<br>â¢ Achieve 40% or above in Module",
+            "BIO3206": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Submit all coursework<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO3207": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Attend all practicals<br>â¢ Submit all coursework<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO3208": "<b>To pass this module you must:</b><br>â¢ Submit report<br>â¢ Achieve 40% or above in Module",
+            "BIO3209": "<b>To pass this module you must:</b><br>â¢ Submit all coursework<br>â¢ Complete class test<br>â¢ Achieve 40% or above in Module",
+            "BIO3301": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in coursework<br>â¢ Submit all coursework<br>â¢ Achieve 40% or above in exam<br>â¢ Achieve 40% or above in Module",
+            "BIO3303": "<b>To pass this module you must:</b><br>â¢ Attend all preparation seminars<br>â¢ Satisfactorily complete work placement (40 weeks)<br>â¢ Submit all placement assessments<br>â¢ Attend presentation<br>â¢ Achieve 40% or above in Module",
+            "BIO3304": "<b>To pass this module you must:</b><br>â¢ Submit all coursework<br>â¢ Complete class test<br>â¢ Achieve 40% or above in Module",
+            "BIO3307": "<b>To pass this module you must:</b><br>â¢ Submit literature review plan<br>â¢ Submit literature review<br>â¢ Complete oral presentation of literature review<br>â¢ Submit dissertation<br>â¢ Achieve 40% or above in Module",
+            "BIO3308": "<b>To pass this module you must:</b><br>â¢ Submit all coursework<br>â¢ Submit dissertation<br>â¢ Demonstrate satisfactory attendance<br>â¢ Achieve 40% or above in Module",
+            "BIO3309": "<b>To pass this module you must:</b><br>â¢ Submit dissertation<br>â¢ Achieve 40% or above in Module",
+            "BIO4101": "<b>To pass this module you must:</b><br>â¢ Submit all continuous assessment<br>â¢ Achieve 40% or above in Module",
+            "BIO4102": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in Module",
+            "BIO4201": "<b>To pass this module you must:</b><br>â¢ Achieve 40% or above in Module",
+            "BIO4301": "<b>To pass this module you must:</b><br>â¢ Submit project proposal and plan<br>â¢ Submit mid-project review<br>â¢ Submit project report<br>â¢ Submit project notebook<br>â¢ Submit risk assessment and ethical consideration form<br>â¢ Deliver mid-project presentaion<br>â¢ Deliver project seminar presentation<br>â¢ Achieve 40% or above in Module",
+            "BIO4302": "<b>To pass this module you must:</b><br>â¢ Attend presentation<br>â¢ Submit literature review<br>â¢ Submit dissertation<br>â¢ Achieve 40% or above in Module",
+            "BIO4303": "<b>To pass this module you must:</b><br>â¢ Deliver presentation<br>â¢ Submit research proposal<br>â¢ Submit literature review<br>â¢ Submit dissertation<br>â¢ Achieve 40% or above in Module"
+        };
+
+        // Get DOM elements
+        const moduleCodeInput = document.getElementById('moduleCode');
+        const moduleSuggestions = document.getElementById('moduleSuggestions');
+        const moduleClearBtn = document.getElementById('moduleClearBtn');
+        
+        const ebnSelect = document.getElementById('EBNType');
+        
+        const explanationSection = document.getElementById('explanationSection');
+        const implicationsSection = document.getElementById('implicationsSection');
+        const compulsoryElementsSection = document.getElementById('compulsoryElementsSection');
+        const EBNName = document.getElementById('EBNName');
+        const EBNExplanation = document.getElementById('EBNExplanation');
+        const implicationsDescription = document.getElementById('implicationsDescription');
+        const compulsoryElementsDescription = document.getElementById('compulsoryElementsDescription');
+
+        // Autocomplete functionality for module code
+        function setupAutocomplete(inputElement, suggestionsElement, clearBtn, options, onSelect) {
+            let currentHighlight = -1;
+            let filteredOptions = [];
+
+            function filterOptions(query) {
+                if (!query.trim()) return [];
+                
+                const lowerQuery = query.toLowerCase();
+                return options.filter(option => 
+                    option.label.toLowerCase().includes(lowerQuery) || 
+                    option.value.toLowerCase().includes(lowerQuery)
+                ).sort((a, b) => {
+                    const aStarts = a.label.toLowerCase().startsWith(lowerQuery) || 
+                                  a.value.toLowerCase().startsWith(lowerQuery);
+                    const bStarts = b.label.toLowerCase().startsWith(lowerQuery) || 
+                                  b.value.toLowerCase().startsWith(lowerQuery);
+                    
+                    if (aStarts && !bStarts) return -1;
+                    if (!aStarts && bStarts) return 1;
+                    return a.label.localeCompare(b.label);
+                });
+            }
+
+            function displaySuggestions(options) {
+                suggestionsElement.innerHTML = '';
+                
+                if (options.length === 0) {
+                    suggestionsElement.innerHTML = '<div class="no-results">No matches found</div>';
+                    suggestionsElement.style.display = 'block';
+                    return;
+                }
+
+                options.forEach((option, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item';
+                    div.textContent = option.label;
+                    div.addEventListener('click', () => selectOption(option));
+                    suggestionsElement.appendChild(div);
+                });
+
+                suggestionsElement.style.display = 'block';
+                currentHighlight = -1;
+            }
+
+            function selectOption(option) {
+                inputElement.value = option.label;
+                inputElement.setAttribute('data-value', option.value);
+                suggestionsElement.style.display = 'none';
+                clearBtn.style.display = 'block';
+                onSelect(option);
+            }
+
+            function highlightSuggestion(index) {
+                const items = suggestionsElement.querySelectorAll('.suggestion-item');
+                items.forEach((item, i) => {
+                    item.classList.toggle('highlighted', i === index);
+                });
+            }
+
+            // Input event listener
+            inputElement.addEventListener('input', (e) => {
+                const query = e.target.value;
+                
+                if (query.trim()) {
+                    clearBtn.style.display = 'block';
+                    filteredOptions = filterOptions(query);
+                    displaySuggestions(filteredOptions);
+                } else {
+                    clearBtn.style.display = 'none';
+                    suggestionsElement.style.display = 'none';
+                    inputElement.removeAttribute('data-value');
+                    updateExplanation();
+                }
+            });
+
+            // Keyboard navigation
+            inputElement.addEventListener('keydown', (e) => {
+                const items = suggestionsElement.querySelectorAll('.suggestion-item');
+                
+                switch (e.key) {
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        if (items.length > 0) {
+                            currentHighlight = Math.min(currentHighlight + 1, items.length - 1);
+                            highlightSuggestion(currentHighlight);
+                        }
+                        break;
+                        
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        if (items.length > 0) {
+                            currentHighlight = Math.max(currentHighlight - 1, 0);
+                            highlightSuggestion(currentHighlight);
+                        }
+                        break;
+                        
+                    case 'Enter':
+                        e.preventDefault();
+                        if (currentHighlight >= 0 && items[currentHighlight] && filteredOptions[currentHighlight]) {
+                            selectOption(filteredOptions[currentHighlight]);
+                        }
+                        break;
+                        
+                    case 'Escape':
+                        suggestionsElement.style.display = 'none';
+                        inputElement.blur();
+                        break;
+                }
+            });
+
+            // Clear button functionality
+            clearBtn.addEventListener('click', () => {
+                inputElement.value = '';
+                suggestionsElement.style.display = 'none';
+                clearBtn.style.display = 'none';
+                inputElement.removeAttribute('data-value');
+                inputElement.focus();
+                updateExplanation();
+            });
+
+            // Focus handling
+            inputElement.addEventListener('focus', () => {
+                if (inputElement.value.trim() && filteredOptions.length > 0) {
+                    suggestionsElement.style.display = 'block';
+                }
+            });
+        }
+
+        // Setup autocomplete for module code input
+        setupAutocomplete(moduleCodeInput, moduleSuggestions, moduleClearBtn, moduleOptions, updateExplanation);
+
+        // Setup dropdown change listener for EBN Type
+        ebnSelect.addEventListener('change', updateExplanation);
+
+        // Close suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-container')) {
+                moduleSuggestions.style.display = 'none';
+            }
+        });
+
+        // Update explanation based on selections
+        function updateExplanation() {
+            const moduleCode = moduleCodeInput.getAttribute('data-value');
+            const EBN = ebnSelect.value;
+            
+            // Check if we have all required values
+            if (!EBN || !moduleCode) {
+                explanationSection.classList.add('hidden');
+                return;
+            }
+            
+            // Show compulsory elements for the selected module
+            if (moduleCompulsoryElements[moduleCode]) {
+                compulsoryElementsDescription.innerHTML = moduleCompulsoryElements[moduleCode];
+                compulsoryElementsSection.classList.remove('hidden');
+            } else {
+                compulsoryElementsSection.classList.add('hidden');
+            }
+            
+            // Outcomes
+            if (EBN === 'ABSENT') {
+                showExplanation(
+                    'ABS (Absent)',
+                    'This means that you did not submit/attend a final assessment on the Module and have no mitigation (EC) for this<br><br><b>If your note reads:</b><br><i>ABSca</i> you are absent for continuous assessment (coursework) only<br><i>ABSe</i> you are absent for an exam only<br><i>ABScae</i> you are <i>EITHER</i> absent for both continuous assessment (coursework) and an exam <i>OR</i> you are absent for either continuous assessment (coursework) or exam and have failed (an)other assessment(s)',
+                    'As this was your first attempt at the Module you will have a final opportunity to submit/sit these missed components. Your Module mark will be capped at 40 as this is a resit.',
+                    'bg-gray-50 border-red-600'
+                );
+            } else if (EBN === 'ABSENT MITIGATION') {
+                showExplanation(
+                    'ABSM (Absent with Mitigation)',
+                    'This means that you did not submit/attend an assessment on the Module but you have mitigation (an EC) for this<br><br><b>If your note reads:</b><br><i>ABSMca</i> you are absent with mitigation for at least one continuous assessment (coursework) only<br><i>ABSMe</i> you are absent with mitigation for an exam only<br><i>ABSMcae</i> you are <i>EITHER</i> absent with mitigation for at least one piece of continuous assessment (coursework) and an exam <i>OR</i> you are absent with mitigation for at least one element of continuous assessment or the exam and have failed other components',
+                    'You will have the opportunity to submit/sit the components for which you have an EC as a first attempt. <br><br>Note, if you have failed other components, you may have to resit these and your mark may be capped at 40. <br><br>If you did not submit or pass a compulsory element but obtained an overall Module mark above 40, you must submit the outstanding components to pass the Module (your mark will not change); failure to submit these will result in a fail. <br><br>If you have not failed/missed anything else, your mark will not be capped and this will be a first sit.',
+                    'bg-gray-50 border-red-600'
+                );
+            } else if (EBN === 'FAIL') {
+                showExplanation(
+                    'F (Fail)',
+                    'This means that you have not achieved a pass mark for the Module. <br><br>If this is a second attempt at a Module and you were previously INC (incomplete) you did not fulfill the compulsory elements of the Module<br><br><b>If your note reads:</b><br><i>Fca</i> you have failed the Module due to failed continuous assessment(s) (coursework) only<br><i>Fe</i> you have failed the Module due to a failed exam only<br><i>Fcae</i> you you have failed the Module due to failed continuous assessment(s) and a failed exam',
+                    'If this is your first attempt at the Module, you will have one further attempt to pass. Your overall mark for the Module will be capped at 40. <br><br>If this is your second attempt at the Module, you will have no further attempts but may be able to carry the Module as a fail on your transcript. This will depend on the outcome of your other Modules.',
+                    'bg-gray-50 border-red-600'
+                );
+            } else if (EBN === 'INCOMPLETE') {
+                showExplanation(
+                    'INC (Incomplete)',
+                    'This means that, whilst you have achieved a pass mark for the Module (40+), you have not completed/passed one or more compulsory elements for the Module<br><br><b>If your note reads:</b><br><i>INCca</i> you have failed to complete/pass (a) compulsory continuous assessment(s) (coursework) only<br><i>INCe</i> you have failed to complete/pass a compulsory exam only<br><i>INCcae</i> you you have failed to complete/pass  (a) compulsory continuous assessment(s) and a compulsory exam',
+                    'You will have one further attempt to pass the Module by completing/passing the outstanding compulsory elements. Your overall mark for the Module will not change after completing these components. If you do not complete these, you will fail the Module with a 39F at the next exam board. You will then have no further attempts but may be able to carry the Module as a fail on your transcript. This will depend on the outcome of your other Modules',
+                    'bg-gray-50 border-red-600'
+                );
+            } else if (EBN === 'MARK NOT AVAILABLE') {
+                showExplanation(
+                    'MNA (Mark Not Available)',
+                    'This means that your mark is not currently available. This could be for a number of reasons e.g. you have not had the opportunity to complete an assessment or we are awaiting an assessment outcome<br><br><b>If your note reads:</b><br><i>MNAca</i> your mark is not available due to (a) missing continuous assessment(s) (coursework) mark only<br><i>MNAe</i> your mark is not available due to a missing exam mark only<br><i>MNAcae</i> your mark is not available due to missing continuous assessment and exam marks',
+                    'The implications of an MNA will depend on the nature of the missing mark(s). Once the mark becomes available, this will be updated for the next exam board.',
+                    'bg-gray-50 border-red-600'
+                );
+            } else if (EBN === 'PASS') {
+                showExplanation(
+                    'P (Pass)',
+                    'This means you have passed the Module',
+                    'You have obtained a pass mark for the Module and satisfactorily completed all compulsory elements. You have nothing further to do for this Module',
+                    'bg-gray-50 border-red-600'
+                );
+            } else if (EBN === 'PASS HONS RESTRICTED') {
+                showExplanation(
+                    'PH (Pass with Honours restriction)',
+                    'This means that you have passed the Module as a resit opportunity',
+                    'You have now passed this Module as a resit. Whilst you will see your overall Module mark on your transcript, your mark will be capped at 40 when calculating your final degree classification',
+                    'bg-gray-50 border-red-600'
+                );
+            }  
+        }
+        
+        function showExplanation(name, explanation, implication, colorClass) {
+            EBNName.textContent = name;
+            EBNExplanation.innerHTML = explanation;
+            explanationSection.classList.remove('hidden');
+            
+            if (implication) {
+                implicationsDescription.innerHTML = implication;
+                implicationsSection.className = `rounded-lg border-2 p-4 ${colorClass}`;
+                implicationsSection.classList.remove('hidden');
+            } else {
+                implicationsSection.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
